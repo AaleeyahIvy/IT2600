@@ -12,6 +12,9 @@ h1 {
     margin-top: 0;
     color: navy;
 }
+h2 {
+    margin-bottom: .25em;
+}
 label {
     display: block;
     width: 8em;
@@ -28,4 +31,7 @@ input, select {
 }
 br {
     clear: left;
+}
+td {
+    padding: .25em 1em .25em 0;
 }

@@ -1,55 +1,73 @@
 <?php
-//set default values
-$number1 = 78;
-$number2 = -105.33;
-$number3 = 0.0049;
-$message = 'Enter some numbers and click on the Submit button.';
+//set default value
+$message = '';
 
-//process
+//get value from POST array
 $action = filter_input(INPUT_POST, 'action');
-switch ($action) {
-    case 'process_data':
-        $number1 = filter_input(INPUT_POST, 'number1');
-        $number2 = filter_input(INPUT_POST, 'number2');
-        $number3 = filter_input(INPUT_POST, 'number3');
-
-        // make sure the user enters three numbers
-        if(empty($number1) || empty($number2) || empty($number3)) {
-            $message = 'Enter 3 numbers!';
-            break;
-        }
-        // make sure the numbers are valid
-        if(!is_numeric($number1) || !is_numeric($number2)|| !is_numeric($number3)){
-            $message = 'Enter valid numbers!';
-            break;
-        }        
-        // get the ceiling and floor for $number2
-        $number2_ceil = ceil($number2);
-        $number2_floor = floor($number2);
-        // round $number3 to 3 decimal places
-        $number3_rounded = round($number3, 3);
-        // get the max and min values of all three numbers
-        $max = max($number1, $number2, $number3);
-        $min = min($number1, $number2, $number3);
-        // generate a random integer between 1 and 100
-        $random = rand(1, 100);
-        // format the message
-        $message = 
-        "Number 1: $number1\n" .
-        "Number 2: $number2\n" .
-        "Number 3: $number3\n" .
-        "\n" .
-        "Number 2 ceiling: $number2_ceil\n" .
-        "Number 2 floor: $number2_floor\n" .
-        "Number 3 rounded: $number3_rounded\n" .
-        "\n" .
-        "Min: $min\n" .
-        "Max: $max\n" .
-        "\n" .
-        "Random: $random\n";
-
-        break;
+if ($action === NULL) {
+    $action =  'start_app';
 }
 
-include 'number_tester.php';
+//process
+switch ($action) {
+    case 'start_app':
+
+        // set default invoice date 1 month prior to current date
+        $interval = new DateInterval('P1M');
+        $default_date = new DateTime();
+        $default_date->sub($interval);
+        $invoice_date_s = $default_date->format('n/j/Y');
+
+        // set default due date 2 months after current date
+        $interval = new DateInterval('P2M');
+        $default_date = new DateTime();
+        $default_date->add($interval);
+        $due_date_s = $default_date->format('n/j/Y');
+
+        $message = 'Enter two dates and click on the Submit button.';
+        break;
+    case 'process_data':
+        $invoice_date_s = filter_input(INPUT_POST, 'invoice_date');
+        $due_date_s = filter_input(INPUT_POST, 'due_date');
+
+        // make sure the user enters both dates
+        if(empty($invoice_date_s) || empty($due_date_s)){
+            $message = 'Enter both dates!';
+            break;
+        }
+        // convert date strings to DateTime objects
+        try{
+        $invoice_date_d = new DateTime($invoice_date_s);
+        $due_date_d = new DateTime($due_date_s);
+        } catch(Exception $e) {
+            $message = 'Both dates must be valid!';
+            break;
+        }
+        // make sure the due date is after the invoice date
+        if($due_date_d < $invoice_date_d){
+            $message = 'Due date must be after invoice date!';
+        }
+        // format both dates
+        
+        $invoice_date_f = date('F j, Y', strtotime($invoice_date_s));
+        $due_date_f = date('F j, Y', strtotime($due_date_s)); 
+        
+        // get the current date and time and format it
+        $t = time();
+        $current_date_f = date('F j, Y', $t);
+        $current_time_f = date('g:i:s a', $t);
+        
+        // get the amount of time between the current date and the due date
+        // and format the due date message
+
+        $diff = date_diff($invoice_date_d, $due_date_d);
+        if($due_date_d< $invoice_date_d){
+            $due_date_message = $diff ->format('Invoice is %y years, %m months, and %d overdue');
+
+        } else {
+            $due_date_message = $diff ->format('Invoice due in %y years, %m months, and %d');
+        }
+        break;
+}
+include 'date_tester.php';
 ?>
